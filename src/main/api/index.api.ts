@@ -251,4 +251,21 @@ export function initAllApi() {
   ipcMain.handle(webToManMsg.getAppSet, () => {
     return AppModel.getInstance().set.set
   })
+
+  // Biometric (Touch ID) handlers
+  ipcMain.handle(webToManMsg.CheckBiometricAvailable, () => {
+    return AppModel.getInstance().CheckBiometricAvailable()
+  })
+
+  ipcMain.handle(webToManMsg.BiometricUnlock, async () => {
+    return await AppModel.getInstance().BiometricUnlock()
+  })
+
+  ipcMain.handle(webToManMsg.EnableBiometric, () => {
+    return AppModel.getInstance().EnableBiometric()
+  })
+
+  ipcMain.handle(webToManMsg.DisableBiometric, () => {
+    AppModel.getInstance().DisableBiometric()
+  })
 }
