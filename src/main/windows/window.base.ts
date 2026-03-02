@@ -145,6 +145,14 @@ export class WindowBase {
     this.win.webContents.send(MainToWebMsg.WindowsShow)
   }
 
+  showInactive() {
+    Log.info('showInactive window', this.url)
+    AppModel.getInstance().setLastPoint(robot.getMousePos())
+    this.win.setAlwaysOnTop(true, 'floating')
+    this.win.showInactive()
+    this.win.webContents.send(MainToWebMsg.WindowsShow)
+  }
+
   hide() {
     Log.info('hide window', this.url)
     this.window.hide()
