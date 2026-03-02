@@ -44,6 +44,7 @@ export interface UserSetInfo {
   normal_lang_set: string //语言设置,
   normal_autoupdate: boolean //自动更新
   normal_poweron_open: boolean //开机自启
+  normal_biometric_unlock: boolean //Touch ID 指纹解锁 (仅Mac)
   shortcut_global_quick_find: string //全局快捷键，快速查找
   shortcut_global_quick_lock: string //全局快捷键，快速锁定
   shortcut_global_open_main: string //全局快捷键，快速锁定
@@ -60,6 +61,7 @@ export const defaultUserSetInfo: UserSetInfo = {
   normal_lang_set: 'zh-cn',
   normal_autoupdate: true,
   normal_poweron_open: true,
+  normal_biometric_unlock: false,
   shortcut_global_quick_find: `${ControlKey.ctrl}+ ${ControlKey.shift}+Q`,
   shortcut_global_quick_lock: `${ControlKey.ctrl}+ ${ControlKey.shift}+L`,
   shortcut_global_open_main: `${ControlKey.ctrl}+ ${ControlKey.shift}+${KEY_MAP.up}`,
