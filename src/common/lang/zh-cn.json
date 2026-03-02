@@ -308,5 +308,14 @@
 
   "vaultitem.label.auto_fill_open": "自动填充开启",
   "vaultitem.label.auto_fill_close": "自动填充关闭",
-  "vaultitem.label.auto_submit": "自动输入时自动提交(ENTER)"
+  "vaultitem.label.auto_submit": "自动输入时自动提交(ENTER)",
+
+  "set.menu.normal_biometric_unlock": "Touch ID 指纹解锁",
+  "biometric.unlock": "使用 Touch ID 解锁",
+  "biometric.unlock.success": "指纹验证成功",
+  "biometric.unlock.fail": "指纹验证失败，请使用密码登录",
+  "biometric.unlock.not_available": "当前设备不支持 Touch ID",
+  "biometric.unlock.reason": "验证指纹以解锁 LockPass",
+  "biometric.enable.success": "Touch ID 解锁已启用",
+  "biometric.disable.success": "Touch ID 解锁已关闭"
 }
