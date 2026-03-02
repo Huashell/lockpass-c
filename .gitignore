@@ -16,3 +16,4 @@ third_lib/robotjs/bin
 package-lock.json
 temp_set.json
 .env
+biometric_*.dat
