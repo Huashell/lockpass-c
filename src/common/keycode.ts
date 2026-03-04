@@ -21,6 +21,32 @@ export enum KEY_MAP {
   arrowdown = 'down'
 }
 
+export interface PlatformKeyDisplay {
+  ctrl: string
+  shift: string
+  alt: string
+}
+
+export function getPlatformKeyDisplay(platform?: string): PlatformKeyDisplay {
+  const isMac = platform
+    ? platform === 'darwin'
+    : typeof window !== 'undefined' && window.electron?.process?.platform === 'darwin'
+  if (isMac) {
+    return { ctrl: 'Cmd', shift: 'Shift', alt: 'Opt' }
+  }
+  return { ctrl: 'Ctrl', shift: 'Shift', alt: 'Alt' }
+}
+
+export function isMacPlatform(): boolean {
+  if (typeof window !== 'undefined' && window.electron?.process?.platform) {
+    return window.electron.process.platform === 'darwin'
+  }
+  if (typeof process !== 'undefined') {
+    return process.platform === 'darwin'
+  }
+  return false
+}
+
 export enum ControlKey {
   control = 'commandorcontrol',
   ctrl = 'ctrl',
