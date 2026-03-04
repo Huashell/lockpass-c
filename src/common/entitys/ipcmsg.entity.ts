@@ -96,5 +96,6 @@ export enum MainToWebMsg {
   VaultChangeNotBackup = 'VaultChangeNotBackup',
   WindowsHide = 'windosHide',
   WindowsShow = 'windosShow',
-  AppSetChange = 'AppSetChange'
+  AppSetChange = 'AppSetChange',
+  TriggerBiometricUnlock = 'TriggerBiometricUnlock'
 }

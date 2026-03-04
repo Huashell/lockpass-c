@@ -1,5 +1,5 @@
 import { UserSetInfo } from '@common/entitys/app.entity'
-import { webToManMsg } from '@common/entitys/ipcmsg.entity'
+import { MainToWebMsg, webToManMsg } from '@common/entitys/ipcmsg.entity'
 import { PagePath } from '@common/entitys/page.entity'
 import { LastUserInfo, RegisterInfo, User } from '@common/entitys/user.entity'
 import { ConsoleLog } from '@renderer/libs/Console'
@@ -29,6 +29,7 @@ export default function Register(): JSX.Element {
   const firstInputRef = useRef<InputRef>(null)
   const [biometricAvailable, setBiometricAvailable] = useState(false)
   const [biometricLoading, setBiometricLoading] = useState(false)
+  const biometricTriggeredRef = useRef(false)
 
   useEffect(() => {
     initData()
@@ -36,6 +37,43 @@ export default function Register(): JSX.Element {
       firstInputRef.current.focus()
     }
   }, [])
+
+  useEffect(() => {
+    if (!isLock) return
+    const handler = () => {
+      ConsoleLog.info('TriggerBiometricUnlock received')
+      if (biometricTriggeredRef.current) return
+      triggerAutoUnlock()
+    }
+    window.electron.ipcRenderer.on(MainToWebMsg.TriggerBiometricUnlock, handler)
+    return () => {
+      window.electron.ipcRenderer.removeListener(MainToWebMsg.TriggerBiometricUnlock, handler)
+    }
+  }, [isLock, biometricAvailable])
+
+  async function triggerAutoUnlock() {
+    const available = biometricAvailable || await checkBiometricAvailable()
+    if (!available) return
+    biometricTriggeredRef.current = true
+    onBiometricUnlock()
+  }
+
+  async function checkBiometricAvailable(): Promise<boolean> {
+    try {
+      const res = await ipc_call<LastUserInfo>(webToManMsg.GetLastUserInfo)
+      if (res.user) {
+        const userset = res.user.user_set as UserSetInfo
+        if (userset.normal_biometric_unlock) {
+          const available = await ipc_call_normal<boolean>(webToManMsg.CheckBiometricAvailable)
+          setBiometricAvailable(available)
+          return available
+        }
+      }
+    } catch (e) {
+      ConsoleLog.error('checkBiometricAvailable error', e)
+    }
+    return false
+  }
 
   async function initData() {
     await GetAllUsers(appstore, getText, messageApi)

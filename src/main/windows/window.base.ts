@@ -143,6 +143,9 @@ export class WindowBase {
     AppModel.getInstance().setLastPoint(robot.getMousePos())
     this.win.show()
     this.win.webContents.send(MainToWebMsg.WindowsShow)
+    if (AppModel.getInstance().IsLock()) {
+      this.win.webContents.send(MainToWebMsg.TriggerBiometricUnlock)
+    }
   }
 
   showInactive() {
@@ -151,6 +154,9 @@ export class WindowBase {
     this.win.setAlwaysOnTop(true, 'floating')
     this.win.showInactive()
     this.win.webContents.send(MainToWebMsg.WindowsShow)
+    if (AppModel.getInstance().IsLock()) {
+      this.win.webContents.send(MainToWebMsg.TriggerBiometricUnlock)
+    }
   }
 
   hide() {
