@@ -38,42 +38,22 @@ export default function Register(): JSX.Element {
     }
   }, [])
 
+  // 监听主进程发来的 TriggerBiometricUnlock 消息（窗口再次显示时触发）
   useEffect(() => {
     if (!isLock) return
     const handler = () => {
-      ConsoleLog.info('TriggerBiometricUnlock received')
+      ConsoleLog.info('TriggerBiometricUnlock received, biometricTriggered:', biometricTriggeredRef.current)
       if (biometricTriggeredRef.current) return
-      triggerAutoUnlock()
+      biometricTriggeredRef.current = true
+      onBiometricUnlock()
     }
     window.electron.ipcRenderer.on(MainToWebMsg.TriggerBiometricUnlock, handler)
     return () => {
       window.electron.ipcRenderer.removeListener(MainToWebMsg.TriggerBiometricUnlock, handler)
     }
-  }, [isLock, biometricAvailable])
+  }, [isLock])
 
-  async function triggerAutoUnlock() {
-    const available = biometricAvailable || await checkBiometricAvailable()
-    if (!available) return
-    biometricTriggeredRef.current = true
-    onBiometricUnlock()
-  }
 
-  async function checkBiometricAvailable(): Promise<boolean> {
-    try {
-      const res = await ipc_call<LastUserInfo>(webToManMsg.GetLastUserInfo)
-      if (res.user) {
-        const userset = res.user.user_set as UserSetInfo
-        if (userset.normal_biometric_unlock) {
-          const available = await ipc_call_normal<boolean>(webToManMsg.CheckBiometricAvailable)
-          setBiometricAvailable(available)
-          return available
-        }
-      }
-    } catch (e) {
-      ConsoleLog.error('checkBiometricAvailable error', e)
-    }
-    return false
-  }
 
   async function initData() {
     await GetAllUsers(appstore, getText, messageApi)
@@ -85,6 +65,7 @@ export default function Register(): JSX.Element {
           const userset = res.user.user_set as UserSetInfo
           if (userset.normal_biometric_unlock) {
             ipc_call_normal<boolean>(webToManMsg.CheckBiometricAvailable).then((available) => {
+              ConsoleLog.info('CheckBiometricAvailable result:', available)
               setBiometricAvailable(available)
             })
           }
@@ -152,10 +133,15 @@ export default function Register(): JSX.Element {
         appstore.Login(user)
         await UpdateMenu(appstore, getText)
         history.go(-1)
+      } else {
+        // 解锁失败，允许再次自动触发
+        biometricTriggeredRef.current = false
       }
     } catch (e: any) {
       ConsoleLog.error('BiometricUnlock error', e)
       messageApi.error(getText('biometric.unlock.fail'))
+      // 解锁失败，允许再次自动触发
+      biometricTriggeredRef.current = false
     } finally {
       setBiometricLoading(false)
     }
