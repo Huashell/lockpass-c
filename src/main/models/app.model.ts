@@ -3,7 +3,7 @@ app main model
 */
 import { MyEncode } from '@main/libs/my_encode'
 import { Log } from '@main/libs/log'
-import { app, dialog, crashReporter, globalShortcut, screen, BrowserWindow } from 'electron'
+import { app, dialog, crashReporter, globalShortcut, screen, BrowserWindow, systemPreferences } from 'electron'
 import { ValutService as VaultService } from '@main/services/vault.service'
 import { UserService } from '@main/services/user.service'
 import { VaultItemService } from '@main/services/vault_item.service'
@@ -17,7 +17,7 @@ import { QuickSearchWindow } from '@main/windows/window.quicksearch'
 import { MyTray } from '@main/windows/mytray'
 import { initAllApi } from '@main/api/index.api'
 import robot from 'robotjs_addon'
-import { ApiRespCode, defaultUserSetInfo, UserSetInfo } from '@common/entitys/app.entity'
+import { ApiRespCode, defaultUserSetInfo, UserSetInfo, ApiResp } from '@common/entitys/app.entity'
 import { AppEvent, AppEventType } from '@main/entitys/appmain.entity'
 import {
   Csv2TableCol,
@@ -215,6 +215,10 @@ class AppModel {
   }
 
   public LoginOut() {
+    const uid = this.user?.userinfo?.id
+    if (uid) {
+      this.myencode?.clearBiometricHash(uid)
+    }
     this.myencode?.LoginOut()
     this._logined = false
     this._lock = true
@@ -242,6 +246,8 @@ class AppModel {
         const value = setinfo[key]
         if (value && value.length > 0) {
           const res = globalShortcut.register(value, () => {
+            // 在显示窗口之前先记录鼠标位置，避免 show 后焦点变化导致位置不准
+            this.setLastPoint(robot.getMousePos())
             if (key == 'shortcut_global_open_main') this.mainwin?.show()
             if (key == 'shortcut_global_quick_find') this.quickwin?.show()
             if (key == 'shortcut_global_quick_lock') this.LockApp()
@@ -651,6 +657,66 @@ class AppModel {
         path: ex,
         args: []
       })
+    }
+  }
+
+  public CheckBiometricAvailable(): boolean {
+    if (!this.isMac) return false
+    try {
+      return systemPreferences.canPromptTouchID()
+    } catch (e: any) {
+      Log.Exception(e, 'CheckBiometricAvailable error')
+      return false
+    }
+  }
+
+  public async BiometricUnlock(): Promise<ApiResp<User>> {
+    const res: ApiResp<User> = { code: ApiRespCode.other_err }
+    try {
+      const lastUserId = this.set.GetLastUserId()
+      if (!lastUserId) {
+        res.code = ApiRespCode.user_notfind
+        return res
+      }
+      if (!this.myencode.hasBiometricHash(lastUserId)) {
+        res.code = ApiRespCode.key_not_found
+        return res
+      }
+      // 触发 Touch ID 验证
+      await systemPreferences.promptTouchID(LangHelper.getString('biometric.unlock.reason'))
+      // Touch ID 验证成功，从缓存恢复 hash
+      const loaded = this.myencode.loadBiometricHash(lastUserId)
+      if (!loaded) {
+        res.code = ApiRespCode.key_not_found
+        return res
+      }
+      // 恢复用户信息并登录
+      const user = await this.user.GetOne({ id: lastUserId })
+      if (!user) {
+        res.code = ApiRespCode.user_notfind
+        return res
+      }
+      this.user.userinfo = user
+      this.Login(user.id)
+      res.code = ApiRespCode.SUCCESS
+      res.data = user
+    } catch (e: any) {
+      Log.Exception(e, 'BiometricUnlock error')
+      res.code = ApiRespCode.other_err
+    }
+    return res
+  }
+
+  public EnableBiometric(): boolean {
+    const uid = this.user?.userinfo?.id
+    if (!uid) return false
+    return this.myencode.saveBiometricHash(uid)
+  }
+
+  public DisableBiometric(): void {
+    const uid = this.user?.userinfo?.id
+    if (uid) {
+      this.myencode.clearBiometricHash(uid)
     }
   }
 }

@@ -11,7 +11,7 @@ import {
   NoteTextPasswordInfo,
   VaultItem
 } from '@common/entitys/vault_item.entity'
-import { KEY_MAP } from '@common/keycode'
+import { KEY_MAP, getPlatformKeyDisplay } from '@common/keycode'
 
 //get string for show
 export function GetPasswordInfoString(item: VaultItem): string {
@@ -232,20 +232,30 @@ export enum PasswordRenderDetailKey {
   ctrl_alt_c = `${KEY_MAP.ctrl}+${KEY_MAP.alt}+c`
 }
 
+export function getPasswordRenderDetailKeyDisplay() {
+  const keys = getPlatformKeyDisplay()
+  return {
+    ctrl_C: `${keys.ctrl}+C`,
+    ctrl_shift_C: `${keys.ctrl}+${keys.shift}+C`,
+    ctrl_alt_c: `${keys.ctrl}+${keys.alt}+C`
+  }
+}
+
 export const GetPasswordRenderDetailList = (vaule: VaultItem): PasswordRenderDetail[] => {
+  const display = getPasswordRenderDetailKeyDisplay()
   switch (vaule.vault_item_type) {
     case VaultItemType.Login:
       return [
-        { key: 'username', shortCut: PasswordRenderDetailKey.ctrl_C },
-        { key: 'password', shortCut: PasswordRenderDetailKey.ctrl_alt_c }
+        { key: 'username', shortCut: display.ctrl_C },
+        { key: 'password', shortCut: display.ctrl_alt_c }
       ]
     case VaultItemType.Card:
       return [
-        { key: 'card_number', shortCut: PasswordRenderDetailKey.ctrl_C },
-        { key: 'card_password', shortCut: PasswordRenderDetailKey.ctrl_alt_c }
+        { key: 'card_number', shortCut: display.ctrl_C },
+        { key: 'card_password', shortCut: display.ctrl_alt_c }
       ]
     case VaultItemType.NoteBook:
-      return [{ key: 'note_text', shortCut: PasswordRenderDetailKey.ctrl_C }]
+      return [{ key: 'note_text', shortCut: display.ctrl_C }]
   }
   return []
 }

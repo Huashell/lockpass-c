@@ -302,5 +302,14 @@
 
   "vaultitem.label.username_auto_fill": "Auto fill username",
   "vaultitem.label.password_auto_fill": "Auto fill password",
-  "vaultitem.label.auto_submit": "Auto submit(ENTER)"
+  "vaultitem.label.auto_submit": "Auto submit(ENTER)",
+
+  "set.menu.normal_biometric_unlock": "Touch ID Fingerprint Unlock",
+  "biometric.unlock": "Unlock with Touch ID",
+  "biometric.unlock.success": "Fingerprint verified",
+  "biometric.unlock.fail": "Fingerprint verification failed, please use password",
+  "biometric.unlock.not_available": "Touch ID is not available on this device",
+  "biometric.unlock.reason": "Verify fingerprint to unlock LockPass",
+  "biometric.enable.success": "Touch ID unlock enabled",
+  "biometric.disable.success": "Touch ID unlock disabled"
 }

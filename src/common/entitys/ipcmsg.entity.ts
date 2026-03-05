@@ -70,7 +70,13 @@ export enum webToManMsg {
   LoginGoogledrive = 'LoginGoogledrive',
   //admin
   OpenDev = 'OpenDev',
-  OpenLog = 'OpenLog'
+  OpenLog = 'OpenLog',
+
+  //biometric
+  BiometricUnlock = 'BiometricUnlock',
+  CheckBiometricAvailable = 'CheckBiometricAvailable',
+  EnableBiometric = 'EnableBiometric',
+  DisableBiometric = 'DisableBiometric'
 }
 
 export enum MainToWebMsg {
@@ -90,5 +96,6 @@ export enum MainToWebMsg {
   VaultChangeNotBackup = 'VaultChangeNotBackup',
   WindowsHide = 'windosHide',
   WindowsShow = 'windosShow',
-  AppSetChange = 'AppSetChange'
+  AppSetChange = 'AppSetChange',
+  TriggerBiometricUnlock = 'TriggerBiometricUnlock'
 }

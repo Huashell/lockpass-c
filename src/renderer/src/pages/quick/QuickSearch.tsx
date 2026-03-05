@@ -2,7 +2,7 @@ import { renderViewType } from '@common/entitys/app.entity'
 import { MainToWebMsg, webToManMsg } from '@common/entitys/ipcmsg.entity'
 import { VaultItem } from '@common/entitys/vault_item.entity'
 import { Icon_type, VaultItemType } from '@common/gloabl'
-import { GetTrueKey, KEY_MAP } from '@common/keycode'
+import { GetTrueKey, KEY_MAP, isMacPlatform } from '@common/keycode'
 import Icon from '@renderer/components/Icon'
 import {
   GetPasswordInfoString,
@@ -182,23 +182,25 @@ export default function QuickSearch() {
   }
 
   useEffect(() => {
+    const isMac = isMacPlatform()
     const handleKeyDown = (event: KeyboardEvent) => {
       const selectItem = selectItemRef.current
       const show_detail = showDetailRef.current
       const selectItemDetail = selectDetailItemRef.current
-      if (event.ctrlKey && event.key == 'c') {
-        ConsoleLog.info('ctrl c')
-        handlerCopy(PasswordRenderDetailKey.ctrl_C)
-        return
-      }
-      if (event.ctrlKey && event.altKey && event.key == 'c') {
-        ConsoleLog.info('ctrl alt c')
+      const modKey = isMac ? event.metaKey : event.ctrlKey
+      if (modKey && event.altKey && event.key == 'c') {
+        ConsoleLog.info('mod alt c')
         handlerCopy(PasswordRenderDetailKey.ctrl_alt_c)
         return
       }
-      if (event.ctrlKey && event.shiftKey && event.key == 'c') {
-        ConsoleLog.info('ctrl shift c')
+      if (modKey && event.shiftKey && event.key == 'c') {
+        ConsoleLog.info('mod shift c')
         handlerCopy(PasswordRenderDetailKey.ctrl_shift_C)
+        return
+      }
+      if (modKey && event.key == 'c') {
+        ConsoleLog.info('mod c')
+        handlerCopy(PasswordRenderDetailKey.ctrl_C)
         return
       }
       const truekey = GetTrueKey(event)

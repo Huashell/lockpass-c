@@ -6,6 +6,7 @@ import { User } from '@common/entitys/user.entity'
 import { ApiRespCode } from '@common/entitys/app.entity'
 import { Log } from './log'
 import { SECRET_VER_CODE } from '@common/gloabl'
+import { safeStorage } from 'electron'
 interface SecretyItemInfo {
   uid: number
   key: string
@@ -189,5 +190,70 @@ export class MyEncode {
       Log.Exception(e, data)
     }
     return ''
+  }
+
+  // ---- Biometric (Touch ID) hash 缓存方法 ----
+
+  private getBiometricHashPath(uid: number): string {
+    return path.join(PathHelper.getHomeDir(), `biometric_${uid}.dat`)
+  }
+
+  public saveBiometricHash(uid: number): boolean {
+    try {
+      if (!this._pass_hash) {
+        Log.error('saveBiometricHash: _pass_hash is null')
+        return false
+      }
+      if (!safeStorage.isEncryptionAvailable()) {
+        Log.error('saveBiometricHash: safeStorage encryption not available')
+        return false
+      }
+      const hashStr = this._pass_hash.toString('base64')
+      const encrypted = safeStorage.encryptString(hashStr)
+      fs.writeFileSync(this.getBiometricHashPath(uid), encrypted)
+      Log.info('saveBiometricHash: saved for uid', uid)
+      return true
+    } catch (e: any) {
+      Log.Exception(e, 'saveBiometricHash error')
+      return false
+    }
+  }
+
+  public loadBiometricHash(uid: number): boolean {
+    try {
+      const filePath = this.getBiometricHashPath(uid)
+      if (!fs.existsSync(filePath)) {
+        Log.error('loadBiometricHash: file not found')
+        return false
+      }
+      if (!safeStorage.isEncryptionAvailable()) {
+        Log.error('loadBiometricHash: safeStorage encryption not available')
+        return false
+      }
+      const encrypted = fs.readFileSync(filePath)
+      const hashStr = safeStorage.decryptString(encrypted)
+      this._pass_hash = Buffer.from(hashStr, 'base64')
+      Log.info('loadBiometricHash: loaded for uid', uid)
+      return true
+    } catch (e: any) {
+      Log.Exception(e, 'loadBiometricHash error')
+      return false
+    }
+  }
+
+  public clearBiometricHash(uid: number): void {
+    try {
+      const filePath = this.getBiometricHashPath(uid)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+        Log.info('clearBiometricHash: cleared for uid', uid)
+      }
+    } catch (e: any) {
+      Log.Exception(e, 'clearBiometricHash error')
+    }
+  }
+
+  public hasBiometricHash(uid: number): boolean {
+    return fs.existsSync(this.getBiometricHashPath(uid))
   }
 }
